@@ -2,7 +2,20 @@ function love.load()
 	hero = {}
 	hero.x = 300
  	hero.y = 450
-	hero.speed = 100	
+  hero.width = 30
+  hero.height = 15
+	hero.speed = 100
+  hero.shots = {}
+	
+  enemies = {}
+  for i=0,7 do
+      enemy = {}
+      enemy.width = 40
+      enemy.height = 20
+      enemy.x = i * (enemy.width + 60) + 100
+      enemy.y = enemy.height + 100
+      table.insert(enemies, enemy)
+  end
 end
 
 function love.update(dt)
@@ -11,6 +24,40 @@ function love.update(dt)
 	elseif love.keyboard.isDown("right") then
 		hero.x = hero.x + hero.speed*dt
 	end
+  
+  for i,e in ipairs(enemies) do
+    e.y = e.y + dt
+    
+    if e.y > 465 then 
+      -- you lose!!
+    end
+  end
+  
+  local remEnemy = {}
+  local remShot = {}
+  
+  for i,v in ipairs(hero.shots) do
+    v.y = v.y - dt * 100
+    
+    if v.y > 0 then 
+        table.insert(remShot, i)
+    end
+    
+    for ii,vv in ipairs(enemies) do
+        if CheckCollision(v.x,v.y,2,5,vv.x,vv.y,vv.width,vv.height) then 
+            table.insert(remEnemy, ii)
+            table.insert(remShot, i)
+        end
+    end
+  end
+  
+  for i,v in ipairs(remEnemy) do
+    table.remove(enemies, v)
+  end
+  
+  for i,v in ipairs(remShot) do
+    table.remove(hero.shots, v)
+  end
 end
 
 function love.draw()
@@ -18,5 +65,39 @@ function love.draw()
 	love.graphics.rectangle("fill", 0, 465, 800, 150)
 
 	love.graphics.setColor(255,255,0,255)
-	love.graphics.rectangle("fill", hero.x, hero.y, 30, 15)
+	love.graphics.rectangle("fill", hero.x, hero.y, hero.width, hero.height)
+  
+  love.graphics.setColor(0,255,255,255)
+  for i,v in ipairs(enemies) do
+    love.graphics.rectangle("fill", v.x, v.y, v.width, v.height)
+  end
+  
+  love.graphics.setColor(0,0,255,255)
+  for i,v in ipairs(hero.shots) do
+    love.graphics.rectangle("fill", v.x, v.y, 2, 5)
+  end
+end
+
+function love.keyreleased(key)
+    if (key == " ") then 
+      shoot()
+    end
+    
+    if key == "escape" then 
+      love.event.quit()
+    end
+end
+
+function CheckCollision(x1,y1,w1,h1,x2,y2,w2,h2)
+  return x1 < x2 + w2 and
+    x2 < x1 + w1 and
+    y1 < y2 + h2 and
+    y2 < y1 + h1
+end
+
+function shoot()
+  local shot = {}
+  shot.x = hero.x + hero.width / 2
+  shot.y = hero.y 
+  table.insert(hero.shots, shot)
 end
