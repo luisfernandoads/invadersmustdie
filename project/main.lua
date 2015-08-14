@@ -1,4 +1,6 @@
 function love.load()
+  bg = love.graphics.newImage("bg.png")
+  
 	hero = {}
 	hero.x = 300
  	hero.y = 450
@@ -25,53 +27,69 @@ function love.update(dt)
 		hero.x = hero.x + hero.speed*dt
 	end
   
-  for i,e in ipairs(enemies) do
-    e.y = e.y + dt
-    
-    if e.y > 465 then 
-      -- you lose!!
-    end
-  end
-  
   local remEnemy = {}
   local remShot = {}
   
+  -- update shots
   for i,v in ipairs(hero.shots) do
     v.y = v.y - dt * 100
     
-    if v.y > 0 then 
+    -- mark shots the fly off the top of the screen for removal
+    if v.y < 0 then 
         table.insert(remShot, i)
     end
     
+    -- check for collision between enemy and shot
     for ii,vv in ipairs(enemies) do
         if CheckCollision(v.x,v.y,2,5,vv.x,vv.y,vv.width,vv.height) then 
+            -- mark enemy and shot for removal
             table.insert(remEnemy, ii)
             table.insert(remShot, i)
         end
     end
   end
   
+  -- remove enemies
   for i,v in ipairs(remEnemy) do
     table.remove(enemies, v)
   end
   
+  
   for i,v in ipairs(remShot) do
     table.remove(hero.shots, v)
+  end
+  
+  -- update enemies
+  for i,e in ipairs(enemies) do
+    e.y = e.y + dt
+    
+    -- check for collision with ground
+    if e.y > 465 then 
+      -- you lose!!
+    end
   end
 end
 
 function love.draw()
-	love.graphics.setColor(0,255,0,255)
+	-- draw background
+  love.graphics.setColor(255,255,255,255)
+  love.graphics.draw(bg)
+  
+  -- draw ground
+  love.graphics.setColor(0,255,0,255)
 	love.graphics.rectangle("fill", 0, 465, 800, 150)
 
+  -- draw hero
 	love.graphics.setColor(255,255,0,255)
 	love.graphics.rectangle("fill", hero.x, hero.y, hero.width, hero.height)
   
+  --draw enemies
   love.graphics.setColor(0,255,255,255)
   for i,v in ipairs(enemies) do
     love.graphics.rectangle("fill", v.x, v.y, v.width, v.height)
   end
   
+  -- draw hero's shots
   love.graphics.setColor(0,0,255,255)
   for i,v in ipairs(hero.shots) do
     love.graphics.rectangle("fill", v.x, v.y, 2, 5)
